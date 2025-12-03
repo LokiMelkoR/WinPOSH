@@ -1,0 +1,38 @@
+## Server Resource Usage Statistics
+## Gathers comprehensive CPU, Memory, and Storage information
+
+Write-Host "====== SERVER RESOURCE USAGE STATISTICS ======" -ForegroundColor Yellow
+Write-Host ""
+
+## CPU USAGE - Top 10 Processes by CPU consumption
+Write-Host "=== TOP 10 PROCESSES BY CPU USAGE ===" -ForegroundColor Cyan
+Get-Process | Sort-Object CPU -Descending | Select-Object -First 10 @{Name="Name";Expression={$_.Name}}, @{Name="CPU (s)";Expression={[math]::Round($_.CPU, 2)}}, @{Name="Memory (MB)";Expression={[math]::Round($_.WorkingSet / 1MB, 2)}} | Format-Table
+
+Write-Host ""
+
+## MEMORY USAGE - Top 10 Processes by Memory consumption
+Write-Host "=== TOP 10 PROCESSES BY MEMORY USAGE ===" -ForegroundColor Cyan
+Get-Process | Sort-Object WorkingSet -Descending | Select-Object -First 10 @{Name="Name";Expression={$_.Name}}, @{Name="Memory (MB)";Expression={[math]::Round($_.WorkingSet / 1MB, 2)}}, @{Name="CPU (s)";Expression={[math]::Round($_.CPU, 2)}} | Format-Table
+
+Write-Host ""
+
+## SYSTEM MEMORY SUMMARY
+Write-Host "=== SYSTEM MEMORY SUMMARY ===" -ForegroundColor Cyan
+$TotalMemory = Get-CimInstance Win32_ComputerSystem | Select-Object -ExpandProperty TotalPhysicalMemory
+$FreeMemory = Get-CimInstance Win32_OperatingSystem | Select-Object -ExpandProperty FreePhysicalMemory
+$UsedMemory = $TotalMemory - ($FreeMemory * 1KB)
+$MemoryPercent = [math]::Round(($UsedMemory / $TotalMemory) * 100, 2)
+
+Write-Host "Total Memory: $([math]::Round($TotalMemory / 1GB, 2)) GB"
+Write-Host "Used Memory: $([math]::Round($UsedMemory / 1GB, 2)) GB"
+Write-Host "Free Memory: $([math]::Round($FreeMemory / 1MB, 2)) MB"
+Write-Host "Memory Usage: $MemoryPercent%"
+
+Write-Host ""
+
+## STORAGE USAGE - All Drives
+Write-Host "=== DISK STORAGE USAGE ===" -ForegroundColor Cyan
+Get-Volume | Where-Object {$_.DriveLetter -ne $null} | Select-Object @{Name="Drive";Expression={$_.DriveLetter}}, @{Name="Total (GB)";Expression={[math]::Round($_.Size / 1GB, 2)}}, @{Name="Used (GB)";Expression={[math]::Round(($_.Size - $_.SizeRemaining) / 1GB, 2)}}, @{Name="Free (GB)";Expression={[math]::Round($_.SizeRemaining / 1GB, 2)}}, @{Name="Usage %";Expression={[math]::Round((($_.Size - $_.SizeRemaining) / $_.Size) * 100, 2)}} | Format-Table
+
+Write-Host ""
+Write-Host "====== END OF REPORT ======" -ForegroundColor Yellow

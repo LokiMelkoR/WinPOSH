@@ -1,0 +1,31 @@
+#This will bulk add users to active directory from a CSV file
+
+Import-Module ActiveDirectory
+
+$csvPath = "C:\User_Work\BulkAddUsers\users.csv"
+
+$users = Import-Csv -Path $csvPath
+
+foreach ($user in $users) 
+{
+    $firstName = $user.FirstName
+    $lastName = $user.LastName
+    $username = $user.Username
+    $password = $user.Password
+    $ou = $user.OU
+
+    # Create a secure string for the password
+
+    $securePassword = ConvertTo-SecureString $password -AsPlainText -Force
+
+    # Create the new user
+    New-ADUser `
+        -GivenName $firstName `
+        -Surname $lastName `
+        -Name "$firstName $lastName" `
+        -SamAccountName $username `
+        -UserPrincipalName "$username@yourdomain.com" `
+        -AccountPassword $securePassword `
+        -Path $ou `
+        -Enabled $true
+}

@@ -1,0 +1,3 @@
+#This will list all users in a specified Active Directory group, sorted by their names.
+
+Get-ADGroupMember -Identity "<group>"|Select-Object Name|Sort-Object Name
